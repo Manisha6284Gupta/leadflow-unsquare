@@ -37,7 +37,7 @@ cp .env.example .env
 Open `.env` and set your `MONGODB_URI`:
 ```env
 # Your MongoDB Atlas Connection String:
-MONGODB_URI="mongodb+srv://manishagupta01000_db_user:<YOUR_PASSWORD>@cluster0.jpduuzq.mongodb.net/?appName=Cluster0"
+MONGODB_URI=""
 
 # Optional: Port (default is 3000)
 PORT=3000
@@ -76,41 +76,3 @@ http://localhost:3000
 
 ---
 
-## 📦 Download Complete Code
-
-You can also download the entire `.tar.gz` bundle directly from the app interface by clicking the **"MERN Stack"** badge in the navbar and choosing **"Download Project Code"**.
-
----
-
-## 🐙 Pushing to Your GitHub Repository
-
-Follow these 4 simple steps to push this project to your GitHub:
-
-### 1. Create a New Repository on GitHub
-1. Go to [github.com/new](https://github.com/new).
-2. Enter a repository name (e.g. `leadflow-expat-crm` or `leadflow-mern`).
-3. Leave **"Initialize this repository with a README"** **UNCHECKED** (we already have one).
-4. Click **Create repository**.
-5. Copy the repository URL (e.g. `https://github.com/<your-username>/<repo-name>.git`).
-
-### 2. Initialize Git Locally (in VS Code terminal)
-Inside your project folder in VS Code, run:
-```bash
-git init
-git add .
-git commit -m "feat: complete LeadFlow MERN expat mortgage CRM"
-```
-
-### 3. Link Your GitHub Remote
-Replace `<YOUR_GITHUB_REPO_URL>` with your actual URL:
-```bash
-git branch -M main
-git remote add origin <YOUR_GITHUB_REPO_URL>
-```
-
-### 4. Push to GitHub
-```bash
-git push -u origin main
-```
-
-*(Note: `.env` is already configured in `.gitignore` so your private database passwords and secret keys will never be accidentally committed to GitHub).*
