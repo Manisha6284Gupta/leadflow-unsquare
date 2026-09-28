@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx backend/server.js",
+    "dev:backend": "STANDALONE_BACKEND=true tsx backend/server.js",
+    "dev:frontend": "vite",
     "start": "tsx backend/server.js",
     "build": "vite build",
     "preview": "vite preview",

@@ -14,6 +14,7 @@ import { DashboardAnalytics } from "./components/DashboardAnalytics";
 import { PlatformAdminView } from "./components/PlatformAdminView";
 import { ToastContainer } from "./components/ToastContainer";
 import { LoginModal } from "./components/LoginModal";
+import { LandingPage } from "./components/LandingPage";
 import {
   Kanban,
   FileCheck2,
@@ -33,12 +34,37 @@ const MainApp = () => {
     switchRole,
     isLoginModalOpen,
     closeLoginModal,
-    login
+    login,
+    viewMode,
+    setViewMode
   } = useApp();
   const [activeTab, setActiveTab] = useState("pipeline");
   const [selectedLead, setSelectedLead] = useState(null);
   const [showCreateLeadModal, setShowCreateLeadModal] = useState(false);
   const overdueCount = tasks.filter((t) => t.isOverdue && !t.completed).length;
+
+  if (viewMode === "landing") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+        <RoleTenantSwitcher />
+        <LandingPage
+          onLaunchApp={() => setViewMode("crm")}
+          onSelectLeadInPipeline={(lead) => {
+            setViewMode("crm");
+            setActiveTab("pipeline");
+            if (lead) setSelectedLead(lead);
+          }}
+        />
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={closeLoginModal}
+          onLoginSuccess={(user, token) => login(user, token)}
+        />
+        <ToastContainer />
+      </div>
+    );
+  }
+
   return <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {
     /* Top Navbar with Multi-Tenant & Role Switcher */

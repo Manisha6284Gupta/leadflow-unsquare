@@ -12,7 +12,8 @@ import {
   LogIn,
   LogOut,
   Lock,
-  Download
+  Download,
+  Globe
 } from "lucide-react";
 export const RoleTenantSwitcher = () => {
   const [showMernInspector, setShowMernInspector] = useState(false);
@@ -30,7 +31,9 @@ export const RoleTenantSwitcher = () => {
     resetDemoData,
     isAuthenticated,
     openLoginModal,
-    logout
+    logout,
+    viewMode,
+    setViewMode
   } = useApp();
   const roles = [
     {
@@ -114,6 +117,15 @@ export const RoleTenantSwitcher = () => {
             <Download className="w-3 h-3 text-blue-400" />
             <span>Download .zip</span>
           </a>
+
+          <button
+            onClick={() => setViewMode(viewMode === "landing" ? "crm" : "landing")}
+            title="Switch to Public Marketing & Expat Lead Intake Site"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/70 hover:text-white transition cursor-pointer shadow-sm font-semibold text-[11px]"
+          >
+            <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{viewMode === "landing" ? "Open CRM Dashboard" : "Marketing Landing Page"}</span>
+          </button>
         </div>
 
         {

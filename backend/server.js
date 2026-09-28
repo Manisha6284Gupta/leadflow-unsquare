@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -341,6 +342,37 @@ app.get("/api/users", (req, res) => {
     filtered = users.filter((u) => u.brokerageId === brokerageId || u.brokerageId === "all");
   }
   res.json({ success: true, users: filtered });
+});
+app.post("/api/users", (req, res) => {
+  const { name, email, role, brokerageId, jobTitle, phone } = req.body;
+  if (!name || !email || !brokerageId) {
+    return res.status(400).json({ error: "Missing required fields: name, email, brokerageId" });
+  }
+  const cleanEmail = email.trim().toLowerCase();
+  const existing = users.find((u) => u.email.toLowerCase() === cleanEmail);
+  if (existing) {
+    return res.status(400).json({ error: "User with this email already exists" });
+  }
+  const newUser = {
+    id: `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    brokerageId,
+    name,
+    email: cleanEmail,
+    role: role || "advisor",
+    jobTitle: jobTitle || (role === "brokerage_admin" ? "Brokerage Admin" : "Mortgage Specialist"),
+    phone: phone || "+49 30 00000000",
+    avatar: `https://images.unsplash.com/photo-${role === "brokerage_admin" ? "1573496359142-b8d87734a5a2" : "1507003211169-0a1dd7228f2d"}?auto=format&fit=crop&q=80&w=250`,
+    isOnline: true
+  };
+  users.push(newUser);
+  res.status(201).json({ success: true, user: newUser });
+});
+app.delete("/api/users/:id", (req, res) => {
+  const { id } = req.params;
+  const idx = users.findIndex((u) => u.id === id);
+  if (idx < 0) return res.status(404).json({ error: "User not found" });
+  users.splice(idx, 1);
+  res.json({ success: true, message: "User deleted" });
 });
 app.get("/api/leads", (req, res) => {
   const brokerageId = req.query.brokerageId;

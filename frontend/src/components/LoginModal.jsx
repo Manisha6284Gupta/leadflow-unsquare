@@ -12,10 +12,15 @@ import {
   AlertCircle,
   KeyRound,
   Eye,
-  EyeOff
+  EyeOff,
+  Compass,
+  FileCheck2,
+  Kanban,
+  UploadCloud
 } from "lucide-react";
 
 export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
+  const [activeTab, setActiveTab] = useState("roles"); // "roles" | "credentials"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("leadflow2026");
   const [selectedBrokerageId, setSelectedBrokerageId] = useState("brk-hypolink-berlin");
@@ -37,7 +42,38 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
   if (!isOpen) return null;
 
-  const handleLogin = async (e) => {
+  const handleRoleQuickLogin = async (targetEmail, targetBrokerageId) => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: targetEmail.trim(),
+          password: "leadflow2026",
+          brokerageId: targetBrokerageId
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Authentication failed");
+      }
+
+      localStorage.setItem("leadflow_token", data.token);
+      localStorage.setItem("leadflow_user", JSON.stringify(data.user));
+
+      onLoginSuccess(data.user, data.token);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to log in");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleManualLogin = async (e) => {
     e?.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
@@ -58,7 +94,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
         throw new Error(data.error || "Authentication failed");
       }
 
-      // Store auth session
       localStorage.setItem("leadflow_token", data.token);
       localStorage.setItem("leadflow_user", JSON.stringify(data.user));
 
@@ -70,178 +105,281 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     }
   };
 
-  const handleSelectDemoUser = (user) => {
-    setEmail(user.email);
-    setSelectedBrokerageId(user.brokerageId);
-    setPassword("leadflow2026");
-    setErrorMessage("");
-  };
+  const rolesCatalog = [
+    {
+      role: "platform_admin",
+      label: "1. Platform Admin (Super Admin)",
+      name: "Henrik Lindemann",
+      email: "henrik@leadflow-platform.de",
+      brokerageId: "all",
+      brokerageName: "Central Platform HQ",
+      badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+      buttonBg: "hover:border-purple-500/60 hover:bg-purple-950/20",
+      icon: <ShieldCheck className="w-5 h-5 text-purple-400" />,
+      scope: "Platform management & multi-tenant isolation.",
+      duties: [
+        "Onboarding Brokerages (Creates & manages tenant accounts)",
+        "System Health (Views platform usage across all brokerages)",
+        "Role/Access Control (Provisions credentials for Brokerage Admins)"
+      ]
+    },
+    {
+      role: "brokerage_admin",
+      label: "2. Brokerage Admin",
+      name: "Elena Rostova",
+      email: "elena@hypolink-berlin.de",
+      brokerageId: "brk-hypolink-berlin",
+      brokerageName: "HypoLink Berlin",
+      badgeColor: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+      buttonBg: "hover:border-blue-500/60 hover:bg-blue-950/20",
+      icon: <Building2 className="w-5 h-5 text-blue-400" />,
+      scope: "Workspace setup, workflow rules & team management.",
+      duties: [
+        "Defines pipeline stages & column rules",
+        "Sets up Email Templates with {{client_name}}, {{advisor_name}}",
+        "Sets up Email Triggers & 2-Hour Task Triggers on pipeline columns",
+        "Invites & manages Advisor accounts and reviews performance"
+      ]
+    },
+    {
+      role: "advisor",
+      label: "3. Advisor (Mortgage Specialist)",
+      name: "Marcus Weber",
+      email: "marcus@hypolink-berlin.de",
+      brokerageId: "brk-hypolink-berlin",
+      brokerageName: "HypoLink Berlin",
+      badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+      buttonBg: "hover:border-emerald-500/60 hover:bg-emerald-950/20",
+      icon: <UserCheck className="w-5 h-5 text-emerald-400" />,
+      scope: "Lead conversion, live pipeline, onboarding & document audit.",
+      duties: [
+        "Lead Ingestion & Anti-Duplicate Warning alerts",
+        "Live Kanban Pipeline management (real-time updates via SSE)",
+        "Auto-generated tasks & overdue deadline tracking",
+        "Converts Lead to Client (generates buyer portal access)",
+        "Reviews 15–40 documents with background Pass/Fail/Pending statuses"
+      ]
+    },
+    {
+      role: "client",
+      label: "4. Client (Home Buyer / Expat)",
+      name: "Liam Davies",
+      email: "liam.davies@techcorp.io",
+      brokerageId: "brk-hypolink-berlin",
+      brokerageName: "HypoLink Berlin Case #DE-BER-2024",
+      badgeColor: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+      buttonBg: "hover:border-cyan-500/60 hover:bg-cyan-950/20",
+      icon: <User className="w-5 h-5 text-cyan-400" />,
+      scope: "Case tracking & non-blocking document submission.",
+      duties: [
+        "Secure PIN/Credential Authentication into personal mortgage portal",
+        "Asynchronous, non-blocking upload of 15–40 German bank files",
+        "Live status updates as background workers OCR & verify each file"
+      ]
+    }
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col md:flex-row text-slate-100">
-        {/* Left Side: Brand & Context */}
-        <div className="md:w-5/12 bg-gradient-to-br from-blue-900/60 via-indigo-950/70 to-slate-950 p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800">
-          <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-lg text-white shadow-lg shadow-blue-500/30">
-                LF
-              </div>
-              <div>
-                <h2 className="font-extrabold text-base tracking-tight text-white">LeadFlow CRM</h2>
-                <span className="text-[10px] text-blue-400 font-semibold uppercase tracking-wider">
-                  German Mortgage OS
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden text-slate-100 my-auto">
+        {/* Header */}
+        <div className="p-5 sm:p-6 border-b border-slate-800/80 bg-slate-950/60 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/20">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-white">Sign In to LeadFlow</h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  Select Role
                 </span>
               </div>
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed mb-4">
-              Secure multi-tenant authentication protecting sensitive SCHUFA credit reports, salary statements, and passport verifications.
-            </p>
-
-            <div className="space-y-2.5 text-[11px] text-slate-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Strict multi-tenant brokerage data isolation</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Role-based access: Advisor, Admin & Expat</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>GDPR & German banking compliance</span>
-              </div>
+              <p className="text-xs text-slate-400">
+                Choose a role to sign in and experience its dedicated scope and workflows.
+              </p>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800/80 text-[11px] text-slate-500">
-            <span>Demo credentials pre-configured for instant one-click login.</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab("roles")}
+                className={`px-3 py-1 rounded-lg font-semibold transition ${
+                  activeTab === "roles" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                1-Click Role Login
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("credentials")}
+                className={`px-3 py-1 rounded-lg font-semibold transition ${
+                  activeTab === "credentials" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Email & Password
+              </button>
+            </div>
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-slate-400 hover:text-white text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Right Side: Login Form */}
-        <div className="md:w-7/12 p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-blue-400" />
-                  <span>Sign In</span>
-                </h3>
-                <p className="text-xs text-slate-400">Enter your credentials or choose a test account below.</p>
-              </div>
+        {errorMessage && (
+          <div className="m-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
-              {onClose && (
-                <button
-                  onClick={onClose}
-                  className="text-slate-400 hover:text-slate-200 text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition"
+        {/* TAB 1: 4 USER ROLES SIGN IN */}
+        {activeTab === "roles" && (
+          <div className="p-5 sm:p-6 space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              {rolesCatalog.map((r) => (
+                <div
+                  key={r.role}
+                  className={`bg-slate-950/70 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between transition group ${r.buttonBg}`}
                 >
-                  Cancel
-                </button>
-              )}
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                          {r.icon}
+                        </div>
+                        <div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${r.badgeColor}`}>
+                            {r.label}
+                          </span>
+                          <h4 className="text-sm font-bold text-white mt-1">{r.name}</h4>
+                          <span className="text-[11px] text-slate-400">{r.email}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800/80">
+                      <p className="text-[11px] font-medium text-slate-300 mb-1.5">
+                        {r.scope}
+                      </p>
+                      <ul className="space-y-1 text-[10px] text-slate-400">
+                        {r.duties.map((duty, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400 mt-0.5 shrink-0" />
+                            <span>{duty}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleRoleQuickLogin(r.email, r.brokerageId)}
+                    className="mt-4 w-full py-2.5 rounded-xl bg-slate-900 hover:bg-blue-600 text-slate-200 hover:text-white border border-slate-700/80 font-bold text-xs flex items-center justify-center gap-1.5 shadow transition disabled:opacity-50"
+                  >
+                    <span>Sign In as {r.role === "platform_admin" ? "Platform Superadmin" : r.role === "brokerage_admin" ? "Broker Admin" : r.role === "advisor" ? "Mortgage Advisor" : "Expat Client"}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
             </div>
+          </div>
+        )}
 
-            {errorMessage && (
-              <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-3.5">
+        {/* TAB 2: MANUAL EMAIL & PASSWORD LOGIN */}
+        {activeTab === "credentials" && (
+          <div className="p-6 max-w-md mx-auto">
+            <form onSubmit={handleManualLogin} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="advisor@hypolink-berlin.de"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Password
                 </label>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-9 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-9 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300"
+                    className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Brokerage Workspace (Tenant)
+                </label>
+                <select
+                  value={selectedBrokerageId}
+                  onChange={(e) => setSelectedBrokerageId(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="brk-hypolink-berlin">HypoLink Berlin</option>
+                  <option value="brk-rheinmain-frankfurt">RheinMain Expat Mortgages (Frankfurt)</option>
+                  <option value="brk-bavaria-munich">Bavaria Expat Financing (Munich)</option>
+                  <option value="all">Platform Super Admin (All Brokerages)</option>
+                </select>
+              </div>
+
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-xs text-white flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition disabled:opacity-50"
               >
                 {isLoading ? (
                   <span>Authenticating...</span>
                 ) : (
                   <>
-                    <span>Log In to Workspace</span>
+                    <span>Sign In to Workspace</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
                 )}
               </button>
             </form>
-
-            {/* Quick Demo Logins */}
-            <div className="mt-5 pt-4 border-t border-slate-800">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 mb-2">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>One-Click Demo Profiles:</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[10px]">
-                {demoUsers.slice(0, 4).map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => handleSelectDemoUser(u)}
-                    className={`p-2 rounded-lg border text-left transition flex items-center gap-2 ${
-                      email === u.email
-                        ? "bg-blue-950/60 border-blue-500/60 text-blue-200"
-                        : "bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300"
-                    }`}
-                  >
-                    <img
-                      src={u.avatar}
-                      alt={u.name}
-                      className="w-6 h-6 rounded-full object-cover shrink-0"
-                    />
-                    <div className="truncate">
-                      <div className="font-semibold truncate">{u.name}</div>
-                      <div className="text-[9px] text-slate-400 truncate">
-                        {u.role === "platform_admin" ? "Platform Superadmin" : u.city}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
+        )}
+
+        {/* Footer */}
+        <div className="p-4 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+          <span>GDPR Compliant • Multi-Tenant Isolation Enforced • German BaFin §34i Ready</span>
+          <span className="text-slate-500">Default demo password: <code>leadflow2026</code></span>
         </div>
       </div>
     </div>

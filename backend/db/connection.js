@@ -1,3 +1,4 @@
+import "dotenv/config";
 import mongoose from "mongoose";
 import {
   BrokerageModel,
@@ -27,11 +28,10 @@ let isMongoConnected = false;
 let mongoConnectionError = null;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/leadflow";
 export async function initDatabaseConnection() {
-  console.log(`[MERN Stack] Initializing Mongoose connection to: ${MONGODB_URI}`);
+  console.log(`[MERN Stack] Initializing Mongoose connection to: ${MONGODB_URI.replace(/:[^:@]+@/, ":****@")}`);
   try {
     await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 3000,
-      connectTimeoutMS: 3000
+      serverSelectionTimeoutMS: 8000
     });
     isMongoConnected = true;
     mongoConnectionError = null;

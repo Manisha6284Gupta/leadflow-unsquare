@@ -21,6 +21,7 @@ export const AppProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
   const [isSseConnected, setIsSseConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("landing"); // "landing" as default initial view
   const eventSourceRef = useRef(null);
   const addToast = useCallback((type, title, message) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
@@ -192,6 +193,7 @@ export const AppProvider = ({ children }) => {
     if (user.brokerageId && user.brokerageId !== "all") {
       setCurrentBrokerageId(user.brokerageId);
     }
+    setViewMode("crm");
     setIsLoginModalOpen(false);
     addToast("success", `Welcome back, ${user.name}!`, `Authenticated as ${user.jobTitle || user.role}.`);
   }, [addToast]);
@@ -509,6 +511,8 @@ export const AppProvider = ({ children }) => {
       emailLogs,
       webhookLogs,
       metrics,
+      viewMode,
+      setViewMode,
       toasts,
       isSseConnected,
       isLoading,
