@@ -37,7 +37,11 @@ cp .env.example .env
 Open `.env` and set your `MONGODB_URI`:
 ```env
 # Your MongoDB Atlas Connection String:
+<<<<<<< HEAD
 
+=======
+MONGODB_URI=""
+>>>>>>> 96e713617caa0f519191f95b3c79d4fd34ac63c9
 
 # Optional: Port (default is 3000)
 PORT=3000
@@ -76,7 +80,10 @@ http://localhost:3000
 
 ---
 
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 96e713617caa0f519191f95b3c79d4fd34ac63c9
