@@ -1,0 +1,6 @@
+{
+  "name": "LeadFlow - Expat Mortgage Broker CRM",
+  "description": "Multi-tenant mortgage brokerage platform for German expat home financing with real-time pipeline, automated webhook lead ingestion, duplicate detection, and async document verification.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
